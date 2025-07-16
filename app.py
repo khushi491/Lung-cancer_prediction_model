@@ -1,31 +1,54 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 import joblib
 import os
 import warnings
+import logging
 
 # Suppress warnings
 warnings.filterwarnings("ignore")
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Load the trained model
 model_path = "./lung_cancer_prediction_model.joblib"
-if os.path.exists(model_path):
-    model = joblib.load(model_path)
-else:
-    print("Model file not found. Please run the training script first.")
-    model = None
+model = None
+
+try:
+    if os.path.exists(model_path):
+        model = joblib.load(model_path)
+        logger.info("Model loaded successfully")
+    else:
+        logger.error("Model file not found. Please ensure the model file exists.")
+except Exception as e:
+    logger.error(f"Error loading model: {e}")
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/health')
+def health():
+    """Health check endpoint for Railway"""
+    return jsonify({
+        'status': 'healthy',
+        'model_loaded': model is not None
+    })
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         # Get form data
         data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
         
         # Create patient data dictionary
         patient_data = {
@@ -68,7 +91,10 @@ def predict():
         return jsonify(result)
         
     except Exception as e:
+        logger.error(f"Prediction error: {e}")
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001) 
+    port = int(os.environ.get('PORT', 5001))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(debug=debug, host='0.0.0.0', port=port) 
