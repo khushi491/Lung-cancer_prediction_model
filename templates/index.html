@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lung Cancer Risk Assessment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+        }
+        
+        .form-section {
+            padding: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-predict {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .result-card {
+            display: none;
+            margin-top: 2rem;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .result-header {
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .result-body {
+            padding: 2rem;
+            background: white;
+        }
+        
+        .risk-high {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+        
+        .risk-low {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            transition: width 0.5s ease;
+        }
+        
+        .progress-fill.high-risk {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+        }
+        
+        .info-icon {
+            color: #667eea;
+            margin-left: 0.5rem;
+            cursor: help;
+        }
+        
+        .tooltip-inner {
+            background-color: #2c3e50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="header">
+                <h1><i class="fas fa-lungs"></i> Lung Cancer Risk Assessment</h1>
+                <p class="mb-0">Complete the form below to assess your lung cancer risk</p>
+            </div>
+            
+            <div class="form-section">
+                <form id="predictionForm">
+                    <div class="row">
+                        <!-- Personal Information -->
+                        <div class="col-md-6">
+                            <h4 class="mb-3"><i class="fas fa-user"></i> Personal Information</h4>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Gender</label>
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="">Select gender</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Age</label>
+                                <input type="number" class="form-control" id="age" name="age" min="18" max="100" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Lifestyle Factors -->
+                        <div class="col-md-6">
+                            <h4 class="mb-3"><i class="fas fa-smoking"></i> Lifestyle Factors</h4>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you smoke?</label>
+                                <select class="form-select" id="smoking" name="smoking" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you consume alcohol frequently?</label>
+                                <select class="form-select" id="alcohol_consuming" name="alcohol_consuming" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you feel peer pressure to smoke?</label>
+                                <select class="form-select" id="peer_pressure" name="peer_pressure" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row">
+                        <!-- Physical Symptoms -->
+                        <div class="col-md-6">
+                            <h4 class="mb-3"><i class="fas fa-heartbeat"></i> Physical Symptoms</h4>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you have yellow fingers?</label>
+                                <select class="form-select" id="yellow_fingers" name="yellow_fingers" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you experience wheezing?</label>
+                                <select class="form-select" id="wheezing" name="wheezing" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you have a persistent cough?</label>
+                                <select class="form-select" id="coughing" name="coughing" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you experience shortness of breath?</label>
+                                <select class="form-select" id="shortness_of_breath" name="shortness_of_breath" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you have difficulty swallowing?</label>
+                                <select class="form-select" id="swallowing_difficulty" name="swallowing_difficulty" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you experience chest pain?</label>
+                                <select class="form-select" id="chest_pain" name="chest_pain" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Health Conditions -->
+                        <div class="col-md-6">
+                            <h4 class="mb-3"><i class="fas fa-notes-medical"></i> Health Conditions</h4>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you experience significant anxiety?</label>
+                                <select class="form-select" id="anxiety" name="anxiety" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you have a chronic disease?</label>
+                                <select class="form-select" id="chronic_disease" name="chronic_disease" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you experience unusual fatigue?</label>
+                                <select class="form-select" id="fatigue" name="fatigue" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Do you have any severe allergies?</label>
+                                <select class="form-select" id="allergy" name="allergy" required>
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-predict btn-lg">
+                            <i class="fas fa-calculator"></i> Assess Risk
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Loading Spinner -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing your data...</p>
+                </div>
+                
+                <!-- Results -->
+                <div class="result-card" id="resultCard">
+                    <div class="result-header" id="resultHeader">
+                        <h3 id="resultTitle"></h3>
+                    </div>
+                    <div class="result-body">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p class="text-center mb-3">
+                            <strong>Risk Probability: <span id="riskProbability"></span></strong>
+                        </p>
+                        <p id="resultMessage" class="text-center"></p>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-outline-primary" onclick="resetForm()">
+                                <i class="fas fa-redo"></i> New Assessment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultCard').style.display = 'none';
+            
+            // Collect form data
+            const formData = {
+                gender: document.getElementById('gender').value,
+                age: document.getElementById('age').value,
+                smoking: document.getElementById('smoking').value,
+                yellow_fingers: document.getElementById('yellow_fingers').value,
+                anxiety: document.getElementById('anxiety').value,
+                peer_pressure: document.getElementById('peer_pressure').value,
+                chronic_disease: document.getElementById('chronic_disease').value,
+                fatigue: document.getElementById('fatigue').value,
+                allergy: document.getElementById('allergy').value,
+                wheezing: document.getElementById('wheezing').value,
+                alcohol_consuming: document.getElementById('alcohol_consuming').value,
+                coughing: document.getElementById('coughing').value,
+                shortness_of_breath: document.getElementById('shortness_of_breath').value,
+                swallowing_difficulty: document.getElementById('swallowing_difficulty').value,
+                chest_pain: document.getElementById('chest_pain').value
+            };
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                    return;
+                }
+                
+                // Display results
+                const resultCard = document.getElementById('resultCard');
+                const resultHeader = document.getElementById('resultHeader');
+                const resultTitle = document.getElementById('resultTitle');
+                const resultMessage = document.getElementById('resultMessage');
+                const riskProbability = document.getElementById('riskProbability');
+                const progressFill = document.getElementById('progressFill');
+                
+                const probability = (result.probability * 100).toFixed(1);
+                
+                if (result.prediction === 1) {
+                    resultHeader.className = 'result-header risk-high';
+                    resultTitle.innerHTML = '<i class="fas fa-exclamation-triangle"></i> HIGH RISK DETECTED';
+                    resultMessage.innerHTML = '⚠️ The model predicts a HIGH RISK of lung cancer. Please consult with a healthcare professional immediately.';
+                    progressFill.className = 'progress-fill high-risk';
+                } else {
+                    resultHeader.className = 'result-header risk-low';
+                    resultTitle.innerHTML = '<i class="fas fa-check-circle"></i> LOW RISK DETECTED';
+                    resultMessage.innerHTML = '✅ The model predicts a LOW RISK of lung cancer. Continue maintaining a healthy lifestyle.';
+                    progressFill.className = 'progress-fill';
+                }
+                
+                riskProbability.textContent = probability + '%';
+                progressFill.style.width = probability + '%';
+                
+                resultCard.style.display = 'block';
+                resultCard.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        function resetForm() {
+            document.getElementById('predictionForm').reset();
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html> 
