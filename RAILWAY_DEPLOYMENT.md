@@ -11,10 +11,10 @@
 #### 1. Prepare Your Repository
 Your repository is now ready for Railway deployment with the following files:
 - `railway.json` - Railway configuration
-- `nixpacks.toml` - Build configuration
 - `Procfile` - Process definition
 - `requirements.txt` - Python dependencies
 - `app.py` - Updated Flask application
+- `Dockerfile` - Alternative deployment option
 
 #### 2. Deploy to Railway
 
@@ -29,7 +29,7 @@ Your repository is now ready for Railway deployment with the following files:
 
 3. **Configure Deployment**
    - Railway will automatically detect it's a Python project
-   - The build process will use the configurations in `railway.json` and `nixpacks.toml`
+   - The build process will use the standard Python builder
    - No additional configuration needed
 
 4. **Deploy**
@@ -103,7 +103,7 @@ curl -X POST https://your-app-name.railway.app/predict \
 #### 🚀 Performance
 - Automatic scaling based on traffic
 - Global CDN for fast access
-- Optimized build process with Nixpacks
+- Optimized build process
 
 #### 💰 Cost
 - Free tier available
