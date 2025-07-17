@@ -95,6 +95,9 @@ def predict():
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
+    # Get port from environment variable with fallback
     port = int(os.environ.get('PORT', 5001))
     debug = os.environ.get('FLASK_ENV') == 'development'
+    
+    logger.info(f"Starting Flask app on port {port}")
     app.run(debug=debug, host='0.0.0.0', port=port) 
