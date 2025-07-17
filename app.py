@@ -29,6 +29,30 @@ try:
 except Exception as e:
     logger.error(f"Error loading model: {e}")
 
+def get_risk_level(probability):
+    """Determine risk level based on probability"""
+    if probability < 0.55:
+        return "VERY LOW"
+    elif probability < 0.60:
+        return "LOW"
+    elif probability < 0.80:
+        return "MEDIUM"
+    elif probability < 0.90:
+        return "HIGH"
+    else:
+        return "VERY HIGH"
+
+def get_risk_message(risk_level, probability):
+    """Generate appropriate message based on risk level"""
+    messages = {
+        "VERY LOW": f"VERY LOW RISK of lung cancer detected. Probability: {probability:.1%}",
+        "LOW": f"LOW RISK of lung cancer detected. Probability: {probability:.1%}",
+        "MEDIUM": f"MEDIUM RISK of lung cancer detected. Probability: {probability:.1%}",
+        "HIGH": f"HIGH RISK of lung cancer detected. Probability: {probability:.1%}",
+        "VERY HIGH": f"VERY HIGH RISK of lung cancer detected. Probability: {probability:.1%}"
+    }
+    return messages.get(risk_level, f"Risk level: {risk_level}. Probability: {probability:.1%}")
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -77,11 +101,15 @@ def predict():
             prediction = model.predict(input_df)[0]
             probability = model.predict_proba(input_df)[0][1]
             
+            # Determine risk level based on probability
+            risk_level = get_risk_level(probability)
+            message = get_risk_message(risk_level, probability)
+            
             result = {
                 'prediction': int(prediction),
                 'probability': float(probability),
-                'risk_level': 'HIGH' if prediction == 1 else 'LOW',
-                'message': 'HIGH RISK of lung cancer detected.' if prediction == 1 else 'LOW RISK of lung cancer detected.'
+                'risk_level': risk_level,
+                'message': message
             }
         else:
             result = {
